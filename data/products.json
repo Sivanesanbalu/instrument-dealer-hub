@@ -1,0 +1,57 @@
+[
+  {
+    "id": "prod_1",
+    "name": "Rosemount 3051 Coplanar Pressure Transmitter",
+    "model": "3051CD2A22A1AB4",
+    "brand": "Rosemount / Emerson",
+    "category": "Pressure Transmitters",
+    "defaultTargetPrice": 52000,
+    "catalogueUrl": "https://www.emerson.com/documents/automation/product-data-sheet-rosemount-3051-pressure-transmitter-en-79524.pdf",
+    "videoUrl": "https://www.youtube.com/watch?v=k5_c8L-zQ1g",
+    "specifications": "Calibrated Range: 0 to 250 inH2O, Output: 4-20 mA HART, Coplanar Flange, SST 316L Diaphragm"
+  },
+  {
+    "id": "prod_2",
+    "name": "Fluke 754 Documenting Process Calibrator-HART",
+    "model": "FLUKE-754",
+    "brand": "Fluke",
+    "category": "Calibration",
+    "defaultTargetPrice": 440000,
+    "catalogueUrl": "https://dam-assets.fluke.com/s3fs-public/754_____dseng0000.pdf",
+    "videoUrl": "https://www.youtube.com/watch?v=zVvXw1aM3qU",
+    "specifications": "Source/Measure: Volts, mA, RTDs, thermocouples, frequency, and ohms. HART communication built-in."
+  },
+  {
+    "id": "prod_3",
+    "name": "Yokogawa EJA110E Differential Pressure Transmitter",
+    "model": "EJA110E-JMS4G",
+    "brand": "Yokogawa",
+    "category": "Pressure Transmitters",
+    "defaultTargetPrice": 48500,
+    "catalogueUrl": "https://www.yokogawa.com/solutions/products-platforms/field-instruments/pressure-transmitters/differential-pressure-transmitters/eja110e/",
+    "videoUrl": "https://www.youtube.com/watch?v=k8vLzZ1244M",
+    "specifications": "Span: 0.5 to 100 kPa, 4 to 20 mA DC with HART communication, DPharp sensor technology."
+  },
+  {
+    "id": "prod_4",
+    "name": "Megger MIT515 5kV Insulation Resistance Tester",
+    "model": "MIT515-US",
+    "brand": "Megger",
+    "category": "Electrical Testers",
+    "defaultTargetPrice": 185000,
+    "catalogueUrl": "https://megger.com/en/products/mit515-5kv-insulation-resistance-tester",
+    "videoUrl": "https://www.youtube.com/watch?v=q62B0Xn3k88",
+    "specifications": "Measures up to 10 TΩ, Safety rating: CAT IV 600 V, Rapid charge Li-ion battery."
+  },
+  {
+    "id": "prod_5",
+    "name": "Endress+Hauser Promass 83F Coriolis Flowmeter",
+    "model": "83F40-AA2SAAADAEAA",
+    "brand": "Endress+Hauser",
+    "category": "Flowmeters",
+    "defaultTargetPrice": 310000,
+    "catalogueUrl": "https://www.endress.com/en/field-instruments-overview/flow-measurement-product-overview/coriolis-flowmeter-promass-f-83f",
+    "videoUrl": "https://www.youtube.com/watch?v=D0sD99xQoW0",
+    "specifications": "DN 40 1 1/2 inch, Mass flow, volume flow, density and temperature measurement with high accuracy."
+  }
+]

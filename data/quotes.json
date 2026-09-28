@@ -1,0 +1,38 @@
+[
+  {
+    "id": "qt_1",
+    "dealerId": "dlr_1",
+    "dealerName": "Apex Instruments & Calibration Tech",
+    "contactPerson": "Ramesh Sundaram",
+    "phone": "9840123456",
+    "email": "sales@apexinstruments.in",
+    "productName": "Fluke 754 Documenting Process Calibrator-HART",
+    "model": "FLUKE-754",
+    "quotedPrice": 435000,
+    "stockStatus": "Ready Ex-Stock (Chennai Warehouse)",
+    "deliveryTime": "1-2 Business Days",
+    "warranty": "3 Years Standard Fluke Warranty",
+    "paymentTerms": "100% against Proforma Invoice",
+    "remarks": "Original brand new unit with factory calibration certificate included.",
+    "submittedAt": "2026-09-28T18:30:00.000Z",
+    "status": "Shortlisted"
+  },
+  {
+    "id": "qt_2",
+    "dealerId": "dlr_2",
+    "dealerName": "Precision Process Controls & Valves",
+    "contactPerson": "Vikram Patel",
+    "phone": "9825098765",
+    "email": "inquiry@precisionprocess.co.in",
+    "productName": "Rosemount 3051 Coplanar Pressure Transmitter",
+    "model": "3051CD2A22A1AB4",
+    "quotedPrice": 50500,
+    "stockStatus": "Ready Stock (4 Units Available)",
+    "deliveryTime": "Immediate Dispatch",
+    "warranty": "1 Year Manufacturer Warranty",
+    "paymentTerms": "30 Days Credit for Approved Resellers",
+    "remarks": "SS316L diaphragm, standard silicone oil fill, HART 7 compatible.",
+    "submittedAt": "2026-09-28T18:45:00.000Z",
+    "status": "Under Review"
+  }
+]

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All-in-One Instrument Search - India Verified Master Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Minimal Top Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i class="fa-solid fa-shield-halved text-base"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            Instrument Dealer Hub
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">100% Verified Pan-India</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">Strict Anti-Fraud Verification • OEM Manufacturers • IndiaMART TrustSEAL</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="openImportModal()" class="px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-file-excel text-emerald-600"></i>
+          Import Excel / CSV
+        </button>
+        <button onclick="openQuotesModal()" class="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-receipt text-emerald-600"></i>
+          Received Quotes (<span id="topQuotesCount">0</span>)
+        </button>
+        <button onclick="openGstModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-building-columns text-emerald-600"></i>
+          GST Portal Check
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+    <!-- HERO SECTION: THE SINGLE ALL-IN-ONE SEARCH BAR -->
+    <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+      <div class="text-center max-w-2xl mx-auto space-y-1">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> Verified Authentic Indian Vendors Only
+        </div>
+        <h2 class="text-xl font-black text-slate-900 tracking-tight">
+          Find Genuine Manufacturers & Dealers Across India
+        </h2>
+        <p class="text-xs text-slate-500">
+          Strict relevance matching: Search pH meters, pressure transmitters, flowmeters, calibrators without cross-contamination.
+        </p>
+      </div>
+
+      <!-- Main Unified Search Input Box -->
+      <form onsubmit="handleMainSearch(event)" class="max-w-3xl mx-auto">
+        <div class="flex flex-col sm:flex-row items-center gap-2 bg-white p-1.5 rounded-2xl border-2 border-blue-500/40 shadow-lg shadow-blue-500/10 focus-within:border-blue-600 transition">
+          <div class="flex-1 flex items-center px-3 w-full">
+            <i class="fa-solid fa-magnifying-glass text-blue-600 mr-3 text-base"></i>
+            <input type="text" id="mainSearchInput" placeholder="Enter Product Name (e.g. pH meter, Rosemount 3051, Fluke 754, Yokogawa, Megger)..." class="w-full text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none py-2" autocomplete="off">
+          </div>
+
+          <button type="submit" id="searchSubmitBtn" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 whitespace-nowrap transition">
+            <i class="fa-solid fa-globe"></i>
+            Search All India
+          </button>
+        </div>
+      </form>
+
+      <!-- Live External Portals Deep Links Bar (Instant Independent Verification) -->
+      <div class="max-w-3xl mx-auto bg-slate-900 text-white p-3 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs shadow">
+        <span class="text-slate-300 font-medium flex items-center gap-1.5 text-[11px]">
+          <i class="fa-solid fa-arrow-up-right-from-square text-amber-400"></i>
+          Verify live on external portals:
+        </span>
+        <div class="flex items-center gap-2">
+          <button onclick="triggerLiveWebCrawl()" id="crawlWebBtn" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition shadow-sm">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> +Crawl Internet (Live)
+          </button>
+          <button onclick="openLiveIndiaMartDirect()" class="px-2.5 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition">
+            <span class="bg-white text-orange-600 px-1 rounded text-[9px] font-black">IM</span> IndiaMART Live
+          </button>
+          <button onclick="openLiveTradeIndiaDirect()" class="px-2.5 py-1 bg-blue-700 hover:bg-blue-600 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition">
+            <i class="fa-solid fa-truck-ramp-box"></i> TradeIndia Live
+          </button>
+          <button onclick="openLiveGoogleDirect()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-bold text-[11px] flex items-center gap-1 transition">
+            <i class="fa-brands fa-google text-red-400"></i> Google Suppliers
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Model Chips -->
+      <div class="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
+        <span class="text-slate-400 text-[11px] font-medium">Popular searches:</span>
+        <button onclick="quickSearch('pH meter', 8500, '')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-full font-bold transition">
+          🧪 pH meter
+        </button>
+        <button onclick="quickSearch('Rosemount 3051', 52000, 'https://youtube.com/watch?v=k5_c8L-zQ1g')" class="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 rounded-full font-bold transition">
+          Rosemount 3051
+        </button>
+        <button onclick="quickSearch('Fluke 754', 440000, 'https://youtube.com/watch?v=zVvXw1aM3qU')" class="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 rounded-full font-bold transition">
+          Fluke 754
+        </button>
+        <button onclick="quickSearch('Yokogawa EJA110E', 48500, 'https://youtube.com/watch?v=k8vLzZ1244M')" class="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 rounded-full font-bold transition">
+          Yokogawa EJA110E
+        </button>
+        <button onclick="quickSearch('Endress Promass 83F', 310000, 'https://youtube.com/watch?v=D0sD99xQoW0')" class="px-2.5 py-1 bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 rounded-full font-bold transition">
+          Flowmeter 83F
+        </button>
+      </div>
+
+      <!-- Target Buying Price, Quantity & Technical Specs (Reseller Professional RFQ Box) -->
+      <div class="max-w-3xl mx-auto bg-slate-100/80 p-3.5 rounded-xl border border-slate-200 space-y-2.5 text-xs shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-700">Target Price:</span>
+            <div class="relative w-32">
+              <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center font-bold text-slate-400">₹</span>
+              <input type="number" id="rfqTargetPrice" value="8500" placeholder="Target Price" class="w-full bg-white border border-slate-300 rounded-lg pl-6 pr-2 py-1 text-xs font-bold text-emerald-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-700">Qty:</span>
+            <input type="text" id="rfqQuantity" value="1 No" placeholder="e.g. 2 Nos" class="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+
+          <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <span class="font-bold text-slate-700 whitespace-nowrap">Demo Link:</span>
+            <input type="url" id="rfqVideoUrl" placeholder="https://youtube.com/..." class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+
+          <button type="button" onclick="openMarginModal()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition whitespace-nowrap">
+            <i class="fa-solid fa-calculator"></i> Client Quotation (Margin)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+          <span class="font-bold text-slate-700 whitespace-nowrap">Technical Specs / Range:</span>
+          <input type="text" id="rfqSpecs" value="Standard OEM Calibration with Traceability Certificate" placeholder="e.g. Range: 0-10 bar | 4-20mA HART | 1/2 NPT | SS316L" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+        </div>
+
+        <input type="hidden" id="rfqProductName" value="pH meter">
+        <input type="hidden" id="rfqProductModel" value="pH meter">
+      </div>
+    </div>
+
+    <!-- SEARCH RESULTS SECTION: ALL-IN-ONE SUPPLIER LIST -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+      <!-- Search Summary & Category Filter Tabs -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Verified Suppliers Found for:
+            <span id="currentSearchLabel" class="text-blue-700 font-mono font-bold">pH meter</span>
+          </h3>
+          <p class="text-[11px] text-slate-400">Every supplier is verified with GST, registered address, and official web profile</p>
+        </div>
+
+        <!-- Filter Chips: All, Manufacturers, Dealers, IndiaMART + State Filter -->
+        <div class="flex flex-wrap items-center gap-1.5" id="sourceChipsContainer">
+          <button onclick="filterTableBySource('')" class="filter-tab px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-sm" data-type="">
+            All (<span id="countAll">0</span>)
+          </button>
+          <button onclick="filterTableBySource('OEM Manufacturer')" class="filter-tab px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-type="OEM Manufacturer">
+            <i class="fa-solid fa-industry text-purple-600 mr-1"></i> Manufacturers (<span id="countOem">0</span>)
+          </button>
+          <button onclick="filterTableBySource('Authorized Dealer')" class="filter-tab px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-type="Authorized Dealer">
+            <i class="fa-solid fa-store text-emerald-600 mr-1"></i> Dealers (<span id="countDealers">0</span>)
+          </button>
+          <button onclick="filterTableBySource('IndiaMART')" class="filter-tab px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-type="IndiaMART">
+            <span class="text-orange-600 mr-1 font-black">IM</span> IndiaMART (<span id="countIndiaMart">0</span>)
+          </button>
+
+          <!-- State Selector -->
+          <select id="stateFilterSelect" onchange="filterTableByState(this.value)" class="text-xs font-bold bg-white border border-slate-300 text-slate-700 rounded-lg px-2.5 py-1 focus:outline-none shadow-sm cursor-pointer ml-1">
+            <option value="">🗺️ All States</option>
+            <option value="Tamil Nadu">Tamil Nadu (South)</option>
+            <option value="Maharashtra">Maharashtra (West)</option>
+            <option value="Gujarat">Gujarat (West)</option>
+            <option value="Karnataka">Karnataka (South)</option>
+            <option value="Delhi">Delhi NCR</option>
+            <option value="Telangana">Telangana</option>
+            <option value="West Bengal">West Bengal</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Selection Bar -->
+      <div class="flex items-center justify-between text-xs text-slate-600 px-1">
+        <label class="flex items-center gap-2 cursor-pointer font-medium">
+          <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllResults()" class="rounded text-blue-600 focus:ring-blue-500">
+          <span class="font-bold text-slate-800">Select All Verified Suppliers</span>
+        </label>
+        <span id="resultsCountLabel" class="text-slate-500 text-[11px]">• Showing 0 suppliers</span>
+      </div>
+
+      <!-- Unified Results Table -->
+      <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <table class="w-full text-left text-xs text-slate-700">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-3 w-10 text-center">Select</th>
+              <th class="p-3">Company & Classification</th>
+              <th class="p-3">Hub & City</th>
+              <th class="p-3">GSTIN & Trust Status</th>
+              <th class="p-3">Contact (Phone / WhatsApp)</th>
+              <th class="p-3">Official Web Link</th>
+              <th class="p-3 text-center">Safety & RFQ</th>
+            </tr>
+          </thead>
+          <tbody id="searchResultsTableBody" class="divide-y divide-slate-100 bg-white">
+            <tr>
+              <td colspan="7" class="text-center py-10 text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-2xl mb-2 block text-slate-300"></i>
+                Searching...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FLOATING MULTI-BROADCAST BAR -->
+    <div class="sticky bottom-3 z-20 bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-2xl shadow-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-base">
+          <i class="fa-solid fa-bullhorn"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm text-white" id="barSelectedCount">0 Suppliers Selected</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Broadcasts Target Price, Video Link & Official Quote Submission Link</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 w-full sm:w-auto">
+        <!-- WhatsApp Broadcast Button -->
+        <button onclick="triggerWhatsAppBroadcast()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          Send WhatsApp RFQ
+        </button>
+
+        <!-- Gmail BCC Broadcast Button -->
+        <button onclick="triggerEmailBroadcast()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition">
+          <i class="fa-solid fa-envelope text-sm"></i>
+          Send Gmail (BCC)
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal: COMPANY TRUST & FRAUD PREVENTION AUDIT REPORT -->
+  <div id="auditModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-base">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Company Legitimacy & Due Diligence</h3>
+            <p class="text-[11px] text-slate-500">Official Government GST, Address & Anti-Fraud Audit</p>
+          </div>
+        </div>
+        <button onclick="closeAuditModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div id="auditModalContent" class="space-y-4 text-xs">
+        <div class="text-center py-6 text-slate-400">Loading audit report...</div>
+      </div>
+
+      <div class="flex justify-end pt-3 border-t border-slate-100">
+        <button onclick="closeAuditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Close Audit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Bulk Excel / CSV Upload -->
+  <div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">Bulk Import Dealers (Excel / CSV)</h3>
+            <p class="text-[11px] text-slate-500">Add 100s or 1,000s of dealer contacts at once</p>
+          </div>
+        </div>
+        <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Paste CSV / Tab-Separated Dealers Data:</label>
+          <p class="text-[11px] text-slate-400 mb-1">Format: <code>Company Name, Phone, City, GSTIN, Categories</code></p>
+          <textarea id="bulkPasteTextarea" rows="6" placeholder="Kovai Instrumentation, 9840123456, Coimbatore, 33AABCK1234F1Z8, pH Meter Lab&#10;Mumbai Automation, 9820112233, Mumbai, 27AAACM9988D1Z2, Water Testing&#10;Gujarat Flow Spares, 9825144332, Ahmedabad, 24AABCG5544N1Z5, pH Electrodes" class="w-full font-mono text-[11px] border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+          <span class="text-[11px] text-slate-600 font-medium">Or select a CSV file from computer:</span>
+          <input type="file" id="csvFileInput" accept=".csv, .txt" onchange="handleCsvFile(event)" class="text-[11px] text-slate-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <button onclick="closeImportModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Cancel</button>
+        <button onclick="submitBulkDealers()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm">
+          Import Dealers Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Received Dealer Quotes & Comparison -->
+  <div id="quotesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Received Dealer Quotations & Comparison</h3>
+            <p class="text-xs text-slate-500">Dealers submit their best price & stock availability online</p>
+          </div>
+        </div>
+        <button onclick="closeQuotesModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3" id="receivedQuotesList"></div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <button onclick="exportQuotesToCsv()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-file-excel"></i> Export Quotes Comparison (CSV)
+        </button>
+        <button onclick="closeQuotesModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Reseller Margin Calculator & Client Quotation Generator -->
+  <div id="marginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border border-slate-100 max-h-[95vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-base">
+            <i class="fa-solid fa-calculator"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Client Quotation & Reseller Margin Calculator</h3>
+            <p class="text-xs text-slate-500">Calculate profit margins, 18% GST & generate official quotation for your customer</p>
+          </div>
+        </div>
+        <button onclick="closeMarginModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs overflow-y-auto pr-1">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Client / Customer Company Name:</label>
+            <input type="text" id="quoteModalClientName" value="ABC Chemical & Pharma Ltd" placeholder="e.g. Reliance Industries / ABC Petrochem" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Item / Instrument Name:</label>
+            <input type="text" id="quoteModalItem" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Specifications & Scope:</label>
+          <input type="text" id="quoteModalSpecs" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Dealer Buy Price (₹):</label>
+            <input type="number" id="quoteModalBuyPrice" oninput="calculateMargin()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Reseller Margin %:</label>
+            <select id="quoteModalMarginPct" onchange="calculateMargin()" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-indigo-700 focus:outline-none">
+              <option value="10">10% Profit Margin</option>
+              <option value="15" selected>15% Profit Margin</option>
+              <option value="20">20% Profit Margin</option>
+              <option value="25">25% Profit Margin</option>
+              <option value="30">30% Profit Margin</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Quantity Required:</label>
+            <input type="text" id="quoteModalQty" value="1 No" oninput="calculateMargin()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Profit & Total Breakdown Card -->
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-4 rounded-xl space-y-2">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+            <div class="bg-slate-800/60 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Your Margin Profit</span>
+              <span class="font-bold text-emerald-400 text-sm" id="calcProfitPerUnit">₹0</span>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Selling Price / Unit</span>
+              <span class="font-bold text-white text-sm" id="calcSellPricePerUnit">₹0</span>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">Sub-Total (Ex-Tax)</span>
+              <span class="font-bold text-white text-sm" id="calcBaseTotal">₹0</span>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg">
+              <span class="text-[10px] text-slate-400 block">GST 18%</span>
+              <span class="font-bold text-amber-300 text-sm" id="calcGstTotal">₹0</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-semibold">Total Client Quotation Amount (Inc. 18% GST):</span>
+            <span class="text-lg font-black text-emerald-400 font-mono" id="calcGrandTotal">₹0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <button onclick="closeMarginModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Cancel</button>
+        <button onclick="printClientQuotation()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg flex items-center gap-2 shadow-md transition">
+          <i class="fa-solid fa-print"></i> Print / Download PDF Quotation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: GST Verification -->
+  <div id="gstModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-building-columns text-emerald-600"></i> GSTIN & Legitimacy Checker
+        </h3>
+        <button onclick="closeGstModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Enter 15-Digit GSTIN Number:</label>
+          <div class="flex gap-2">
+            <input type="text" id="gstinInput" placeholder="e.g. 33AABCA1234F1Z8" class="flex-1 uppercase font-mono px-3 py-2 border border-slate-300 rounded-lg">
+            <button onclick="runGstVerification()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg">Verify</button>
+          </div>
+        </div>
+        <div id="gstResultBox" class="hidden rounded-xl p-3 border"></div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeGstModal()" class="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: WhatsApp Multi-Sender Drawer -->
+  <div id="broadcastDrawerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <i class="fa-brands fa-whatsapp text-emerald-600 text-lg"></i>
+            WhatsApp Multi-Broadcaster
+          </h3>
+          <p class="text-xs text-slate-500">1-click triggers WhatsApp with product, video demo link & quote portal</p>
+        </div>
+        <button onclick="closeBroadcastDrawer()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Message Preview:</span>
+        <pre id="previewMessageText" class="text-xs text-slate-700 font-sans whitespace-pre-wrap max-h-32 overflow-y-auto bg-white p-3 rounded-lg border border-slate-200"></pre>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="whatsappDealerList"></div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+        <button onclick="closeBroadcastDrawer()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-5 right-5 z-50 hidden px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold text-white transition-all transform duration-300"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
