@@ -828,3 +828,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Instrument Dealer Hub Server running on http://localhost:${PORT}`);
   console.log(`=======================================================`);
 });
+
+module.exports = app;
