@@ -1,0 +1,76 @@
+[
+  {
+    "id": "msg_1727574001",
+    "dealerId": "dlr_3",
+    "sender": "dealer",
+    "text": "Vanakkam sir! Supreme Instrumentation Chennai here. We have ready ex-stock for Fluke 754 and Yokogawa transmitters with 2026 fresh calibration certificates.",
+    "type": "text",
+    "mediaUrl": "",
+    "voiceDuration": null,
+    "replyTo": null,
+    "reactions": ["👍", "✅"],
+    "timestamp": "10:15 AM",
+    "fullDate": "2026-09-29T10:15:00.000Z",
+    "status": "read"
+  },
+  {
+    "id": "msg_1727574002",
+    "dealerId": "dlr_3",
+    "sender": "user",
+    "text": "Can you share the photo of the OEM nameplate and calibration report for 2 units?",
+    "type": "text",
+    "mediaUrl": "",
+    "voiceDuration": null,
+    "replyTo": {
+      "id": "msg_1727574001",
+      "sender": "dealer",
+      "text": "Vanakkam sir! Supreme Instrumentation Chennai here. We have ready ex-stock..."
+    },
+    "reactions": ["🙏"],
+    "timestamp": "10:18 AM",
+    "fullDate": "2026-09-29T10:18:00.000Z",
+    "status": "delivered"
+  },
+  {
+    "id": "msg_1727574003",
+    "dealerId": "dlr_3",
+    "sender": "dealer",
+    "text": "Sure sir, here is the photo of the calibration setup and product serial nameplate.",
+    "type": "image",
+    "mediaUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+    "voiceDuration": null,
+    "replyTo": null,
+    "reactions": ["❤️", "🔥"],
+    "timestamp": "10:20 AM",
+    "fullDate": "2026-09-29T10:20:00.000Z",
+    "status": "read"
+  },
+  {
+    "id": "msg_1727574004",
+    "dealerId": "dlr_3",
+    "sender": "dealer",
+    "text": "Voice note regarding payment terms & 2-day Chennai delivery dispatch.",
+    "type": "voice",
+    "mediaUrl": "https://actions.google.com/sounds/v1/communication/phone_operator_talking.ogg",
+    "voiceDuration": "0:14",
+    "replyTo": null,
+    "reactions": ["👍"],
+    "timestamp": "10:22 AM",
+    "fullDate": "2026-09-29T10:22:00.000Z",
+    "status": "read"
+  },
+  {
+    "id": "msg_1727574005",
+    "dealerId": "dlr_1",
+    "sender": "dealer",
+    "text": "Greetings from Mettler-Toledo India! We received your RFQ for industrial online pH sensor and SevenDirect benchtop meter. Ex-factory dispatch ready within 48 hours.",
+    "type": "text",
+    "mediaUrl": "",
+    "voiceDuration": null,
+    "replyTo": null,
+    "reactions": ["✅"],
+    "timestamp": "09:40 AM",
+    "fullDate": "2026-09-29T09:40:00.000Z",
+    "status": "read"
+  }
+]

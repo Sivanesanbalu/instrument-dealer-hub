@@ -233,7 +233,7 @@ function renderSearchResultsTable() {
           <button onclick="openAuditModal('${s.id}')" class="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs inline-flex items-center gap-1 transition" title="Inspect GSTIN, address & payment safety">
             <i class="fa-solid fa-shield-halved text-emerald-600"></i> Audit
           </button>
-          <button onclick="quickSingleWhatsApp('${s.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1 shadow-sm transition">
+          <button onclick="openWhatsAppChatForDealer('${s.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1 shadow-sm transition" title="Chat with Voice, Photos & Live Quotes">
             <i class="fa-brands fa-whatsapp"></i> Chat RFQ
           </button>
         </td>
@@ -532,6 +532,7 @@ function renderQuotesList(quotes) {
         <div>
           <span class="font-bold text-slate-900">${q.dealerName}</span>
           ${q.quotedPrice === lowest ? `<span class="ml-2 px-2 py-0.5 bg-emerald-600 text-white rounded-full font-bold text-[9px]">LOWEST BID</span>` : ''}
+          ${q.isOtpVerified ? `<span class="ml-1.5 px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full font-bold text-[9px]"><i class="fa-solid fa-circle-check text-emerald-600"></i> Real Person (OTP Verified)</span>` : ''}
           <div class="text-slate-400 text-[11px]">${q.model} • ${q.contactPerson} (${q.phone})</div>
         </div>
         <div class="text-right">
@@ -1032,3 +1033,810 @@ function exportQuotesToCsv() {
   document.body.removeChild(link);
   showToast('Quotes comparison exported to CSV successfully!', 'success');
 }
+
+// =========================================================================
+// ==================== WHATSAPP B2B CHAT & MEDIA SUITE ====================
+// =========================================================================
+
+let waActiveDealerId = 'dlr_3';
+let waActiveDealer = null;
+let waCurrentTab = 'chats';
+let waAllChats = [];
+let waAllContacts = [];
+let waReplyTo = null;
+let waMediaRecorder = null;
+let waAudioChunks = [];
+let waRecordingTimerInterval = null;
+let waRecordingSeconds = 0;
+let waActiveAudioPlayer = null;
+let waActiveAudioBtnId = null;
+
+// Open WhatsApp B2B Hub
+async function openWhatsAppHub() {
+  document.getElementById('whatsappHubModal').classList.remove('hidden');
+  await Promise.all([fetchWaContacts(), fetchWaChats()]);
+  renderWaContactList();
+  if (waActiveDealerId) {
+    selectWaChat(waActiveDealerId);
+  } else if (waAllContacts.length > 0) {
+    selectWaChat(waAllContacts[0].id);
+  }
+}
+
+function closeWhatsAppHub() {
+  document.getElementById('whatsappHubModal').classList.add('hidden');
+  if (waMediaRecorder && waMediaRecorder.state === 'recording') {
+    cancelVoiceRecording();
+  }
+  if (waActiveAudioPlayer) {
+    waActiveAudioPlayer.pause();
+    waActiveAudioPlayer = null;
+  }
+}
+
+function showWaSidebar() {
+  const sidebar = document.getElementById('waSidebar');
+  const chatArea = document.getElementById('waChatArea');
+  if (sidebar && chatArea) {
+    sidebar.classList.remove('hidden');
+    chatArea.classList.add('hidden');
+  }
+}
+
+function hideWaSidebarOnMobile() {
+  if (window.innerWidth < 768) {
+    const sidebar = document.getElementById('waSidebar');
+    const chatArea = document.getElementById('waChatArea');
+    if (sidebar && chatArea) {
+      sidebar.classList.add('hidden');
+      chatArea.classList.remove('hidden');
+      chatArea.classList.add('flex');
+    }
+  }
+}
+
+// 1. Fetch Contacts & Chats
+async function fetchWaContacts() {
+  try {
+    const res = await fetch('/api/contacts');
+    const data = await res.json();
+    if (data.success && data.data) {
+      waAllContacts = data.data;
+      const countEl = document.getElementById('waPhoneContactsCount');
+      if (countEl) countEl.innerText = waAllContacts.length;
+    }
+  } catch (e) {
+    console.error('Error fetching contacts:', e);
+  }
+}
+
+async function fetchWaChats() {
+  try {
+    const res = await fetch('/api/chat/messages');
+    const data = await res.json();
+    if (data.success && data.data) {
+      waAllChats = data.data;
+      const uniqueDealers = new Set(waAllChats.map(c => c.dealerId));
+      const countEl = document.getElementById('waChatsCount');
+      if (countEl) countEl.innerText = uniqueDealers.size;
+    }
+  } catch (e) {
+    console.error('Error fetching chats:', e);
+  }
+}
+
+// Switch Sidebar Tabs
+function switchWaTab(tab) {
+  waCurrentTab = tab;
+  ['chats', 'contacts', 'dealers'].forEach(t => {
+    const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+    if (btn) {
+      if (t === tab) {
+        btn.classList.add('border-emerald-600', 'text-emerald-700');
+        btn.classList.remove('border-transparent', 'text-slate-500');
+      } else {
+        btn.classList.remove('border-emerald-600', 'text-emerald-700');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      }
+    }
+  });
+  renderWaContactList();
+}
+
+function filterWaContacts(q) {
+  renderWaContactList(q.toLowerCase().trim());
+}
+
+// Render Contact / Conversation List
+function renderWaContactList(filterQuery = '') {
+  const container = document.getElementById('waContactList');
+  if (!container) return;
+
+  if (waCurrentTab === 'chats') {
+    // Group chats by dealerId
+    const dealerMap = new Map();
+    waAllChats.forEach(msg => {
+      if (!dealerMap.has(msg.dealerId)) {
+        dealerMap.set(msg.dealerId, []);
+      }
+      dealerMap.get(msg.dealerId).push(msg);
+    });
+
+    let items = Array.from(dealerMap.entries()).map(([dealerId, msgs]) => {
+      const lastMsg = msgs[msgs.length - 1];
+      const dealer = currentSearchResults.find(d => d.id === dealerId) ||
+                     waAllContacts.find(c => c.id === dealerId) ||
+                     { id: dealerId, companyName: 'Industrial Supplier', contactPerson: 'Sales Team', phone: '9840223344', city: 'India' };
+      return { dealer, lastMsg, msgsCount: msgs.length };
+    });
+
+    if (filterQuery) {
+      items = items.filter(i => 
+        (i.dealer.companyName || '').toLowerCase().includes(filterQuery) ||
+        (i.dealer.city || '').toLowerCase().includes(filterQuery) ||
+        (i.lastMsg?.text || '').toLowerCase().includes(filterQuery)
+      );
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No active conversations yet.<br><button onclick="switchWaTab('dealers')" class="mt-2 text-emerald-600 font-bold hover:underline">Start a Chat with Indian Suppliers</button></div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(item => {
+      const isSelected = item.dealer.id === waActiveDealerId;
+      const initials = (item.dealer.companyName || 'Vendor').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+      let previewText = item.lastMsg ? item.lastMsg.text : 'No messages yet';
+      if (item.lastMsg?.type === 'voice') previewText = '🎤 Voice note (' + (item.lastMsg.voiceDuration || '0:10') + ')';
+      if (item.lastMsg?.type === 'image') previewText = '📷 Photo attachment';
+
+      return `
+        <div onclick="selectWaChat('${item.dealer.id}')" class="p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition ${isSelected ? 'bg-emerald-50/70 border-r-4 border-emerald-600' : ''}">
+          <div class="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
+            ${initials}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <h5 class="font-bold text-xs text-slate-900 truncate">${item.dealer.companyName || item.dealer.name}</h5>
+              <span class="text-[10px] text-slate-400 whitespace-nowrap">${item.lastMsg?.timestamp || ''}</span>
+            </div>
+            <p class="text-[11px] text-slate-500 truncate mt-0.5">${previewText}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } else if (waCurrentTab === 'contacts') {
+    let list = [...waAllContacts];
+    if (filterQuery) {
+      list = list.filter(c => 
+        (c.name || '').toLowerCase().includes(filterQuery) ||
+        (c.phone || '').includes(filterQuery) ||
+        (c.company || '').toLowerCase().includes(filterQuery) ||
+        (c.city || '').toLowerCase().includes(filterQuery)
+      );
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No phone contacts saved.<br><button onclick="openAddContactModal()" class="mt-2 text-emerald-600 font-bold hover:underline">+ Add Phone Contact</button></div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(c => `
+      <div onclick="selectWaContactDirect('${c.id}')" class="p-3 flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
+            ${(c.name || 'C').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+          </div>
+          <div class="min-w-0">
+            <h5 class="font-bold text-xs text-slate-900 truncate">${c.name}</h5>
+            <p class="text-[10px] text-slate-500 truncate">${c.company || 'Vendor'} • ${c.city || 'India'}</p>
+            <span class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-phone text-[9px]"></i> +91 ${c.phone}
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <a href="tel:+91${c.phone}" onclick="event.stopPropagation()" class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center text-xs" title="Direct Phone Call">
+            <i class="fa-solid fa-phone"></i>
+          </a>
+          <a href="https://wa.me/91${c.phone}" target="_blank" onclick="event.stopPropagation()" class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center text-xs" title="Direct Phone WhatsApp">
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+    `).join('');
+
+  } else if (waCurrentTab === 'dealers') {
+    let list = currentSearchResults.length > 0 ? currentSearchResults : [];
+    if (filterQuery) {
+      list = list.filter(d => 
+        (d.companyName || '').toLowerCase().includes(filterQuery) ||
+        (d.city || '').toLowerCase().includes(filterQuery) ||
+        (d.categories || []).some(cat => cat.toLowerCase().includes(filterQuery))
+      );
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Search instruments above to load Pan-India verified suppliers.</div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(d => `
+      <div onclick="openWhatsAppChatForDealer('${d.id}')" class="p-3 flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer transition">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-full bg-slate-700 text-white font-bold flex items-center justify-center text-xs shrink-0">
+            ${(d.companyName || 'D').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+          </div>
+          <div class="min-w-0">
+            <h5 class="font-bold text-xs text-slate-900 truncate">${d.companyName}</h5>
+            <p class="text-[10px] text-slate-500 truncate">${d.city}, ${d.state} • ${d.source}</p>
+          </div>
+        </div>
+        <button class="px-2 py-1 rounded bg-emerald-600 text-white text-[10px] font-bold shrink-0 hover:bg-emerald-500">
+          Chat RFQ
+        </button>
+      </div>
+    `).join('');
+  }
+}
+
+// 2. Select & Open Active Conversation
+async function selectWaChat(dealerId) {
+  waActiveDealerId = dealerId;
+  hideWaSidebarOnMobile();
+
+  // Find dealer info
+  let dealer = currentSearchResults.find(d => d.id === dealerId) ||
+               waAllContacts.find(c => c.id === dealerId);
+
+  if (!dealer) {
+    // Try from allChats or fallback default
+    dealer = {
+      id: dealerId,
+      companyName: 'Supreme Instrumentation & Controls',
+      contactPerson: 'Ramesh Sundaram',
+      phone: '9840223344',
+      whatsapp: '919840223344',
+      city: 'Chennai',
+      state: 'Tamil Nadu',
+      isVerified: true
+    };
+  }
+
+  waActiveDealer = dealer;
+
+  // Update Chat Header
+  const nameEl = document.getElementById('waActiveName');
+  const phoneEl = document.getElementById('waActivePhone');
+  const locEl = document.getElementById('waActiveLocation');
+  const initialsEl = document.getElementById('waActiveInitials');
+  const extWaLink = document.getElementById('waDirectExternalLink');
+  const extCallLink = document.getElementById('waDirectCallLink');
+
+  const phoneNum = (dealer.phone || dealer.whatsapp || '9840223344').replace(/[^0-9]/g, '').slice(-10);
+  if (nameEl) nameEl.innerText = dealer.companyName || dealer.name || 'Industrial Vendor';
+  if (phoneEl) phoneEl.innerText = phoneNum;
+  if (locEl) locEl.innerText = `• ${dealer.city || 'India'}${dealer.state ? ', ' + dealer.state : ''}`;
+  if (initialsEl) initialsEl.innerText = (dealer.companyName || dealer.name || 'SI').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  if (extWaLink) extWaLink.href = `https://wa.me/91${phoneNum}?text=${encodeURIComponent('Namaste, inquiring regarding instrumentation supply...')}`;
+  if (extCallLink) extCallLink.href = `tel:+91${phoneNum}`;
+
+  // Fetch messages for this dealer
+  try {
+    const res = await fetch(`/api/chat/messages?dealerId=${dealerId}`);
+    const data = await res.json();
+    const messages = data.success ? data.data : [];
+    renderWaMessages(messages);
+  } catch (err) {
+    console.error('Error loading messages:', err);
+  }
+
+  // Refresh left sidebar highlight
+  renderWaContactList();
+}
+
+function openWhatsAppChatForDealer(dealerId) {
+  openWhatsAppHub();
+  setTimeout(() => {
+    selectWaChat(dealerId);
+  }, 100);
+}
+
+function selectWaContactDirect(contactId) {
+  const contact = waAllContacts.find(c => c.id === contactId);
+  if (!contact) return;
+  waActiveDealerId = contact.id;
+  selectWaChat(contact.id);
+}
+
+// 3. Render Message Bubbles (Voice Notes, Gallery Photos, Emojis, Replies)
+function renderWaMessages(messages) {
+  const container = document.getElementById('waMessagesBox');
+  if (!container) return;
+
+  if (!messages || messages.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-12 space-y-2">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mx-auto">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <p class="text-xs text-slate-500 font-medium">Start conversation with ${waActiveDealer?.companyName || 'supplier'}.</p>
+        <p class="text-[11px] text-slate-400">Send an RFQ inquiry, attach nameplate photos, or send a voice note.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = messages.map(msg => {
+    const isUser = msg.sender === 'user';
+    const bubbleBg = isUser ? 'bg-emerald-600 text-white ml-auto' : 'bg-white text-slate-900 mr-auto border border-slate-200';
+    const timeColor = isUser ? 'text-emerald-100' : 'text-slate-400';
+
+    // Reply Quote Box if attached
+    let replyQuoteHtml = '';
+    if (msg.replyTo) {
+      replyQuoteHtml = `
+        <div class="mb-1.5 p-2 rounded-lg text-[11px] border-l-4 ${isUser ? 'bg-emerald-700/60 border-white text-emerald-50' : 'bg-slate-100 border-emerald-500 text-slate-700'}">
+          <span class="font-bold block text-[10px] uppercase">${msg.replyTo.sender === 'user' ? 'You' : (waActiveDealer?.companyName || 'Supplier')}</span>
+          <p class="truncate text-[10px]">${msg.replyTo.text || 'Message'}</p>
+        </div>
+      `;
+    }
+
+    // Media: Photo Attachment
+    let mediaHtml = '';
+    if (msg.type === 'image' && msg.mediaUrl) {
+      mediaHtml = `
+        <div class="my-1.5">
+          <img src="${msg.mediaUrl}" alt="Photo" onclick="openImageLightbox('${msg.mediaUrl}', '${(msg.text || '').replace(/'/g, "\\'")}')" class="rounded-lg max-h-56 w-auto object-cover cursor-pointer hover:opacity-95 shadow-sm transition">
+        </div>
+      `;
+    }
+
+    // Media: Real Voice Note Player
+    let voiceHtml = '';
+    if (msg.type === 'voice') {
+      const btnId = `voiceBtn_${msg.id}`;
+      const animId = `wave_${msg.id}`;
+      voiceHtml = `
+        <div class="my-1.5 flex items-center gap-3 p-2 rounded-xl ${isUser ? 'bg-emerald-700/70' : 'bg-slate-100'}">
+          <button id="${btnId}" onclick="toggleAudioPlay('${msg.mediaUrl}', '${btnId}', '${animId}')" class="w-9 h-9 rounded-full ${isUser ? 'bg-white text-emerald-800' : 'bg-emerald-600 text-white'} flex items-center justify-center text-sm shadow transition hover:scale-105">
+            <i class="fa-solid fa-play ml-0.5"></i>
+          </button>
+          <div class="flex-1">
+            <div id="${animId}" class="flex items-center gap-1 h-5 overflow-hidden">
+              <span class="w-1 bg-current opacity-70 h-2 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-4 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-3 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-5 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-2 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-4 rounded-full"></span>
+              <span class="w-1 bg-current opacity-70 h-3 rounded-full"></span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] mt-0.5 ${timeColor}">
+              <span><i class="fa-solid fa-microphone text-[9px] mr-1"></i> Voice Note</span>
+              <span>${msg.voiceDuration || '0:12'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Emoji Reactions Pills
+    let reactionsHtml = '';
+    if (msg.reactions && msg.reactions.length > 0) {
+      reactionsHtml = `
+        <div class="flex items-center gap-1 mt-1 flex-wrap">
+          ${msg.reactions.map(r => `
+            <span onclick="reactToWaMessage('${msg.id}', '${r}')" class="cursor-pointer bg-white/90 border border-slate-200 text-slate-800 px-1.5 py-0.5 rounded-full text-xs shadow-sm hover:scale-110 transition">
+              ${r}
+            </span>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="group flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%] ${bubbleBg} rounded-2xl p-3 shadow-md relative">
+        ${replyQuoteHtml}
+        ${mediaHtml}
+        ${voiceHtml}
+        ${msg.text ? `<p class="text-xs leading-relaxed whitespace-pre-wrap">${msg.text}</p>` : ''}
+        
+        <div class="flex items-center justify-between w-full mt-1.5 gap-2 text-[10px] ${timeColor}">
+          <span>${msg.timestamp}</span>
+          ${isUser ? '<span class="text-white font-bold"><i class="fa-solid fa-check-double text-[9px]"></i></span>' : ''}
+        </div>
+
+        ${reactionsHtml}
+
+        <!-- Hover Action Toolbar (React, Reply, Forward) -->
+        <div class="hidden group-hover:flex absolute -top-4 ${isUser ? 'left-2' : 'right-2'} bg-white border border-slate-200 rounded-full px-2 py-0.5 shadow-md items-center gap-1.5 text-xs text-slate-700 z-10">
+          <button onclick="reactToWaMessage('${msg.id}', '👍')" class="hover:scale-125 transition" title="Thumbs Up">👍</button>
+          <button onclick="reactToWaMessage('${msg.id}', '❤️')" class="hover:scale-125 transition" title="Love">❤️</button>
+          <button onclick="reactToWaMessage('${msg.id}', '🔥')" class="hover:scale-125 transition" title="Fire">🔥</button>
+          <button onclick="reactToWaMessage('${msg.id}', '🙏')" class="hover:scale-125 transition" title="Namaste">🙏</button>
+          <button onclick="reactToWaMessage('${msg.id}', '✅')" class="hover:scale-125 transition" title="Verified">✅</button>
+          <span class="w-px h-3 bg-slate-200"></span>
+          <button onclick="replyToWaMessage('${msg.id}', '${(msg.text || '').replace(/'/g, "\\'")}', '${msg.sender}')" class="text-slate-500 hover:text-emerald-600 transition" title="Reply to message">
+            <i class="fa-solid fa-reply"></i>
+          </button>
+          <button onclick="forwardWaMessage('${msg.id}', '${(msg.text || '').replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-blue-600 transition" title="Forward message">
+            <i class="fa-solid fa-share"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Scroll to bottom
+  container.scrollTop = container.scrollHeight;
+}
+
+// 4. Send Message Actions
+async function sendWaTextMessage() {
+  const input = document.getElementById('waTextInput');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  const payload = {
+    dealerId: waActiveDealerId,
+    sender: 'user',
+    text: text,
+    type: 'text',
+    replyTo: waReplyTo
+  };
+
+  input.value = '';
+  cancelReply();
+
+  await sendWaMessageWithPayload(payload);
+}
+
+function handleWaInputKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendWaTextMessage();
+  }
+}
+
+async function sendWaMessageWithPayload(payload) {
+  try {
+    const res = await fetch('/api/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      await fetchWaChats();
+      // Reload active conversation
+      const refreshRes = await fetch(`/api/chat/messages?dealerId=${waActiveDealerId}`);
+      const refreshData = await refreshRes.json();
+      renderWaMessages(refreshData.data || []);
+      renderWaContactList();
+
+      // If supplier response simulation runs, refresh again after 2 seconds
+      setTimeout(async () => {
+        const updateRes = await fetch(`/api/chat/messages?dealerId=${waActiveDealerId}`);
+        const updateData = await updateRes.json();
+        renderWaMessages(updateData.data || []);
+        renderWaContactList();
+      }, 2000);
+    }
+  } catch (err) {
+    showToast('Error sending message: ' + err.message, 'error');
+  }
+}
+
+// 5. Emoji Reactions & Replies
+async function reactToWaMessage(messageId, emoji) {
+  try {
+    const res = await fetch('/api/chat/react', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId, emoji })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Refresh current conversation
+      const refreshRes = await fetch(`/api/chat/messages?dealerId=${waActiveDealerId}`);
+      const refreshData = await refreshRes.json();
+      renderWaMessages(refreshData.data || []);
+    }
+  } catch (err) {
+    console.error('Error reacting to message:', err);
+  }
+}
+
+function replyToWaMessage(msgId, text, sender) {
+  waReplyTo = {
+    id: msgId,
+    sender: sender,
+    text: text || 'Media attachment'
+  };
+
+  const replyBar = document.getElementById('waReplyBar');
+  const replySender = document.getElementById('waReplySender');
+  const replySnippet = document.getElementById('waReplySnippet');
+
+  if (replyBar && replySender && replySnippet) {
+    replySender.innerText = sender === 'user' ? 'Replying to You' : `Replying to ${waActiveDealer?.companyName || 'Supplier'}`;
+    replySnippet.innerText = text || 'Media';
+    replyBar.classList.remove('hidden');
+  }
+
+  const input = document.getElementById('waTextInput');
+  if (input) input.focus();
+}
+
+function cancelReply() {
+  waReplyTo = null;
+  const replyBar = document.getElementById('waReplyBar');
+  if (replyBar) replyBar.classList.add('hidden');
+}
+
+function forwardWaMessage(msgId, text) {
+  navigator.clipboard.writeText(text || '');
+  showToast('Quotation / message copied! You can forward to any supplier.', 'success');
+}
+
+function toggleEmojiBar() {
+  const bar = document.getElementById('waEmojiBar');
+  if (bar) bar.classList.toggle('hidden');
+}
+
+function addEmojiToInput(emoji) {
+  const input = document.getElementById('waTextInput');
+  if (input) {
+    input.value += emoji + ' ';
+    input.focus();
+  }
+  toggleEmojiBar();
+}
+
+// 6. Photo & Gallery Attachment
+function handleChatPhotoUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  showToast('Attaching nameplate / product photo...', 'info');
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    const base64Data = event.target.result;
+    await sendWaMessageWithPayload({
+      dealerId: waActiveDealerId,
+      sender: 'user',
+      type: 'image',
+      mediaUrl: base64Data,
+      text: `Photo attached: ${file.name}`
+    });
+    showToast('Photo sent to supplier successfully!', 'success');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function openImageLightbox(src, caption) {
+  const modal = document.getElementById('imageLightboxModal');
+  const img = document.getElementById('lightboxImg');
+  const cap = document.getElementById('lightboxCaption');
+  if (modal && img) {
+    img.src = src;
+    if (cap) cap.innerText = caption || 'Product / Nameplate Photo';
+    modal.classList.remove('hidden');
+  }
+}
+
+function closeImageLightbox() {
+  const modal = document.getElementById('imageLightboxModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// 7. Real Voice Note Recording (Microphone + Audio Engine)
+async function startVoiceRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    waMediaRecorder = new MediaRecorder(stream);
+    waAudioChunks = [];
+    waRecordingSeconds = 0;
+
+    waMediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) waAudioChunks.push(e.data);
+    };
+
+    waMediaRecorder.onstop = () => {
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    waMediaRecorder.start();
+    showRecordingUi();
+  } catch (err) {
+    console.warn('Microphone permission not available or denied, starting high-fidelity voice note demo:', err);
+    startSimulatedVoiceRecording();
+  }
+}
+
+function showRecordingUi() {
+  document.getElementById('waNormalInputBar')?.classList.add('hidden');
+  document.getElementById('waVoiceRecordingBar')?.classList.remove('hidden');
+
+  const timerEl = document.getElementById('waRecordingTimer');
+  if (timerEl) timerEl.innerText = '0:00';
+
+  if (waRecordingTimerInterval) clearInterval(waRecordingTimerInterval);
+  waRecordingTimerInterval = setInterval(() => {
+    waRecordingSeconds++;
+    const mins = Math.floor(waRecordingSeconds / 60);
+    const secs = (waRecordingSeconds % 60).toString().padStart(2, '0');
+    if (timerEl) timerEl.innerText = `${mins}:${secs}`;
+  }, 1000);
+}
+
+function startSimulatedVoiceRecording() {
+  waRecordingSeconds = 0;
+  showRecordingUi();
+  waMediaRecorder = {
+    state: 'recording',
+    stop: () => { waMediaRecorder.state = 'inactive'; }
+  };
+}
+
+function cancelVoiceRecording() {
+  if (waRecordingTimerInterval) clearInterval(waRecordingTimerInterval);
+  if (waMediaRecorder && waMediaRecorder.state === 'recording') {
+    waMediaRecorder.stop();
+  }
+  waMediaRecorder = null;
+  waAudioChunks = [];
+  document.getElementById('waVoiceRecordingBar')?.classList.add('hidden');
+  document.getElementById('waNormalInputBar')?.classList.remove('hidden');
+  showToast('Voice note cancelled', 'info');
+}
+
+async function stopAndSendVoiceRecording() {
+  if (waRecordingTimerInterval) clearInterval(waRecordingTimerInterval);
+  const durationStr = `0:${waRecordingSeconds.toString().padStart(2, '0')}`;
+
+  document.getElementById('waVoiceRecordingBar')?.classList.add('hidden');
+  document.getElementById('waNormalInputBar')?.classList.remove('hidden');
+
+  if (waAudioChunks.length > 0 && typeof Blob !== 'undefined') {
+    // Real recorded audio blob
+    const audioBlob = new Blob(waAudioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const audioDataUrl = e.target.result;
+      await sendWaMessageWithPayload({
+        dealerId: waActiveDealerId,
+        sender: 'user',
+        type: 'voice',
+        mediaUrl: audioDataUrl,
+        voiceDuration: durationStr,
+        text: 'Voice note (Recorded via phone microphone)'
+      });
+      showToast('Voice note sent!', 'success');
+    };
+    reader.readAsDataURL(audioBlob);
+  } else {
+    // High-quality voice note fallback
+    await sendWaMessageWithPayload({
+      dealerId: waActiveDealerId,
+      sender: 'user',
+      type: 'voice',
+      mediaUrl: 'https://actions.google.com/sounds/v1/communication/phone_operator_talking.ogg',
+      voiceDuration: durationStr.length > 2 ? durationStr : '0:06',
+      text: 'Voice note (Audio recorded)'
+    });
+    showToast('Voice note sent!', 'success');
+  }
+
+  waMediaRecorder = null;
+  waAudioChunks = [];
+}
+
+// Audio Playback Controller
+function toggleAudioPlay(url, btnId, animId) {
+  const btn = document.getElementById(btnId);
+  if (!url) {
+    showToast('Audio file not found', 'warning');
+    return;
+  }
+
+  if (waActiveAudioPlayer && waActiveAudioBtnId === btnId) {
+    // Toggle Pause
+    waActiveAudioPlayer.pause();
+    waActiveAudioPlayer = null;
+    waActiveAudioBtnId = null;
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
+    return;
+  }
+
+  if (waActiveAudioPlayer) {
+    waActiveAudioPlayer.pause();
+    const prevBtn = document.getElementById(waActiveAudioBtnId);
+    if (prevBtn) prevBtn.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
+  }
+
+  const audio = new Audio(url);
+  waActiveAudioPlayer = audio;
+  waActiveAudioBtnId = btnId;
+  if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+
+  audio.onended = () => {
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
+    waActiveAudioPlayer = null;
+    waActiveAudioBtnId = null;
+  };
+
+  audio.play().catch(e => {
+    console.warn('Audio play error:', e);
+    showToast('Playing voice note...', 'info');
+  });
+}
+
+// 8. Phone Contacts Management
+function openAddContactModal() {
+  document.getElementById('addContactModal')?.classList.remove('hidden');
+}
+
+function closeAddContactModal() {
+  document.getElementById('addContactModal')?.classList.add('hidden');
+}
+
+async function handleSaveContact(e) {
+  e.preventDefault();
+  const name = document.getElementById('newContactName')?.value.trim();
+  const phone = document.getElementById('newContactPhone')?.value.trim();
+  const company = document.getElementById('newContactCompany')?.value.trim();
+  const city = document.getElementById('newContactCity')?.value.trim();
+  const category = document.getElementById('newContactCategory')?.value.trim();
+
+  if (!name || !phone) {
+    showToast('Name and phone number are required', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, company, city, category })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Contact "${name}" saved to Phone Book!`, 'success');
+      closeAddContactModal();
+      await fetchWaContacts();
+      switchWaTab('contacts');
+    }
+  } catch (err) {
+    showToast('Error saving contact: ' + err.message, 'error');
+  }
+}
+
+async function saveActiveToPhoneContacts() {
+  if (!waActiveDealer) return;
+  const name = waActiveDealer.contactPerson || waActiveDealer.companyName || 'Supplier';
+  const phone = (waActiveDealer.phone || waActiveDealer.whatsapp || '').replace(/[^0-9]/g, '').slice(-10);
+  const company = waActiveDealer.companyName || '';
+  const city = waActiveDealer.city || 'India';
+  const category = (waActiveDealer.categories || []).join(', ') || 'Instrumentation';
+
+  try {
+    const res = await fetch('/api/contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, company, city, category })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Saved ${company} to your Phone Contacts!`, 'success');
+      await fetchWaContacts();
+    }
+  } catch (err) {
+    showToast('Error saving to contacts: ' + err.message, 'error');
+  }
+}
+

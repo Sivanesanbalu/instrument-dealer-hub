@@ -1,0 +1,57 @@
+[
+  {
+    "id": "cont_1",
+    "name": "Ramesh Sundaram (Director)",
+    "phone": "9840223344",
+    "company": "Supreme Instrumentation & Calibration Controls",
+    "city": "Chennai, Tamil Nadu",
+    "category": "Fluke / Yokogawa / Calibrators",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    "isVerified": true,
+    "savedAt": "2026-09-29T07:00:00.000Z"
+  },
+  {
+    "id": "cont_2",
+    "name": "M. Rajesh (Sales Head)",
+    "phone": "9829011223",
+    "company": "Tempsens Instruments India",
+    "city": "Ahmedabad & Udaipur",
+    "category": "RTD / Thermocouple / Pyrometers",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+    "isVerified": true,
+    "savedAt": "2026-09-29T07:05:00.000Z"
+  },
+  {
+    "id": "cont_3",
+    "name": "Ankit Sharma (Commercial Manager)",
+    "phone": "9821033445",
+    "company": "General Instruments Consortium",
+    "city": "Mumbai, Maharashtra",
+    "category": "Pressure Gauges / Manifolds / Level",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    "isVerified": true,
+    "savedAt": "2026-09-29T07:10:00.000Z"
+  },
+  {
+    "id": "cont_4",
+    "name": "K. Venkatesh (South Region Desk)",
+    "phone": "9841055667",
+    "company": "Radix Electro Devices Stockist",
+    "city": "Bangalore / Chennai",
+    "category": "PID Controllers / Transmitters",
+    "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop&crop=face",
+    "isVerified": true,
+    "savedAt": "2026-09-29T07:15:00.000Z"
+  },
+  {
+    "id": "cont_5",
+    "name": "Priya Patel (Key Accounts)",
+    "phone": "9879011223",
+    "company": "Siemens & WIKA Authorized Stockist",
+    "city": "Vadodara, Gujarat",
+    "category": "Pressure & Differential Transmitters",
+    "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face",
+    "isVerified": true,
+    "savedAt": "2026-09-29T07:20:00.000Z"
+  }
+]
